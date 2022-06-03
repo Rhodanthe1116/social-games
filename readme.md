@@ -1,6 +1,6 @@
 # Social Games
 
-Make friends through playing games!
+Make friends by playing games!
 
 
 [Link](https://game.hwchang.repl.co/)
