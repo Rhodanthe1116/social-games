@@ -1,5 +1,6 @@
 import express from 'express'
 import http from 'http'
+import { nanoid } from 'nanoid'
 import path from 'path'
 import socket, { Server, Socket } from 'socket.io'
 import { v4 as uuid } from 'uuid'
@@ -45,7 +46,20 @@ const starScore = 23
         name: `Player-${socket.id}`
     };
 */
-const players = {}
+interface Player {
+  id: string
+  rotation: number
+  x: number
+  y: number
+  playerId: string
+  team: 'red' | 'blue'
+  name: string
+}
+interface Room {
+  id: string
+  players: Record<string, Player>
+}
+const rooms: Record<string, Room> = {}
 const star = {
   x: Math.floor(Math.random() * 700) + 50,
   y: Math.floor(Math.random() * 500) + 50,
@@ -60,7 +74,7 @@ const PROJECT_ROOT = __dirname + '/..'
 app.use(express.static(PROJECT_ROOT + '/public'))
 
 app.get('/', (req, res) => {
-  const roomId = uuid()
+  const roomId = nanoid(6)
   console.log(`New room created!: ${roomId}`)
   res.redirect(`/${roomId}`)
 })
@@ -69,17 +83,39 @@ app.get('/:room', (req, res) => {
   res.sendFile(path.resolve(PROJECT_ROOT + '/views' + '/index.html'))
 })
 
+const webRTC = {
+  server: {
+    userConnected: 'webrtc-user-connected',
+    userDisconnected: 'webrtc-user-disconnected',
+  },
+  client: {
+    connected: 'webrtc-connected',
+  },
+}
+
 io.on('connection', async function (socket) {
   logUserInfo(socket)
+  const { roomId } = socket.handshake.query
+  if (typeof roomId !== 'string') {
+    console.log('no roomId')
+    return
+  }
+  socket.join(roomId)
 
-  socket.on('webrtc-join-room', (roomId, userId) => {
-    // socket.join(roomId)
-    // socket.to(roomId).emit('webrtc-user-connected', userId)
-    socket.broadcast.emit('webrtc-user-connected', userId)
+  if (!rooms[roomId]) {
+    rooms[roomId] = {
+      id: roomId,
+      players: {},
+    }
+  }
+
+  const players = rooms[roomId].players
+
+  socket.on(webRTC.client.connected, (roomId, userId) => {
+    socket.to(roomId).emit(webRTC.server.userConnected, userId)
 
     socket.on('disconnect', () => {
-      // socket.to(roomId).emit('webrtc-user-disconnected', userId)
-      socket.broadcast.emit('webrtc-user-disconnected', userId)
+      socket.to(roomId).emit(webRTC.server.userDisconnected, userId)
     })
   })
 
@@ -136,13 +172,13 @@ io.on('connection', async function (socket) {
   // }
 
   // update all other players of the new player
-  socket.broadcast.emit('newPlayer', players[socket.id])
+  socket.to(roomId).emit('newPlayer', players[socket.id])
 
   socket.on('disconnect', function () {
     console.log('user disconnected')
 
     delete players[socket.id]
-    socket.broadcast.emit('playerDisconnect', socket.id)
+    socket.to(roomId).emit('playerDisconnect', socket.id)
   })
 
   // when a player moves, update the player data
@@ -151,12 +187,12 @@ io.on('connection', async function (socket) {
     players[socket.id].y = movementData.y
     players[socket.id].rotation = movementData.rotation
     // emit a message to all players about the player that moved
-    socket.broadcast.emit('playerMoved', players[socket.id])
+    socket.to(roomId).emit('playerMoved', players[socket.id])
   })
   socket.on('nameSet', function (name) {
     players[socket.id].name = name
     // emit a message to all players about the player that changed name
-    socket.broadcast.emit('somePlayerNameSet', players[socket.id])
+    socket.to(roomId).emit('somePlayerNameSet', players[socket.id])
   })
 
   // socket.on('chat message', (msg) => {
