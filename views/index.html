@@ -83,6 +83,11 @@
 		#messages li:nth-child(odd) {
 			background: #eee;
 		}
+
+		video {
+			width: 200px;
+			height: 200px;
+		}
 	</style>
 </head>
 
@@ -91,13 +96,10 @@
 
 	</script>
 
-	</script>
-	<script src="js/game.js">
+	<script src="/socket.io/socket.io.js"></script>
+  <script src="https://unpkg.com/peerjs@1.2.0/dist/peerjs.min.js"></script>
 
-	</script>
-	<script src="/socket.io/socket.io.js">
-
-	</script>
+	<script src="js/game.js" defer></script>
 
 	<main>
 		<div id="phaser-example"></div>
@@ -107,6 +109,7 @@
         </div> -->
 
 		<div id="chat-room">
+  		<div id="video-grid"></div>
 			<ul id="messages"></ul>
 			<form id="message-form" action="">
 				<input id="player-name" type="text" placeholder="Name" name="palyerName" maxlength="30">

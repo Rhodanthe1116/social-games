@@ -1,24 +1,32 @@
 {
-    "name": "game",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "devDependencies": {
-        "@types/express": "^4.17.2",
-        "@types/socket.io": "^2.1.4",
-        "nodemon": "^1.19.4",
-        "ts-node": "^8.4.1",
-        "typescript": "^3.7.2"
-    },
-    "dependencies": {
-        "express": "^4.17.1",
-        "mongoose": "^5.10.19",
-        "socket.io": "^3.0.3"
-    }
+  "name": "game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon ./src/index.ts",
+    "peer": "peerjs --port 3001"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^17.0.39",
+    "@types/socket.io": "^3.0.2",
+    "concurrently": "^7.2.1",
+    "nodemon": "^1.19.4",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.10"
+  },
+  "dependencies": {
+    "express": "^4.18.1",
+    "mongoose": "^5.13.14",
+    "socket.io": "^4.5.1",
+    "uuid": "^8.3.2"
+  }
 }

@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "commonjs",
+
+    "baseUrl": ".",
+    "target": "es6",
+    "lib": ["es6", "dom", "esnext.asynciterable"],
+    "sourceMap": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": false,
+    "noImplicitThis": true,
+    "suppressImplicitAnyIndexErrors": true,
+    // "noUnusedLocals": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "alwaysStrict": true,
+    // "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "exclude": ["node_modules", ".vscode"],
+  "include": ["**/*.ts", "**/*.tsx"]
+}
