@@ -71,9 +71,10 @@ export function onConnected(main, myId) {
       pushMessage('已取得視訊')
 
       main.myPeer = new Peer(myId, {
-        // needs this
-        host: '/',
-        port: '3001',
+        // needs myId
+        secure: true,
+        host: 'peerjs-2022.herokuapp.com',
+        // port: '3001',
         debug: 4,
       })
       main.myPeer.on('open', (id) => {

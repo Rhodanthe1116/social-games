@@ -198,7 +198,6 @@ io.on('connection', async function (socket) {
   socket.on('chat message', (msg) => {
     msg.from = players[socket.id].name
     msg.timestamp = new Date().toISOString()
-    console.log(msg)
     io.to(roomId).emit('chat message', msg)
 
     // const newMsg = new Message({ ...msg })
