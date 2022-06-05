@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
-    "start": "node dist/index.js",
+    "start": "concurrently \"nodemon ./src/index.ts\" \"peerjs --port 3001\"",
     "dev": "nodemon ./src/index.ts",
     "peer": "peerjs --port 3001"
   },
