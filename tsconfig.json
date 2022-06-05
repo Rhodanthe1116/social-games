@@ -19,7 +19,7 @@
     "alwaysStrict": true,
     // "noUnusedParameters": true,
     "skipLibCheck": true,
-    "noEmit": true,
+    // "noEmit": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
