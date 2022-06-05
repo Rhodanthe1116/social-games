@@ -237,6 +237,6 @@ io.on('connection', async function (socket) {
 
 const PORT = process.env.PORT || 8000
 
-server.listen(8000, function () {
+server.listen(PORT, function () {
   console.log(`Listening on ${PORT}`)
 })
