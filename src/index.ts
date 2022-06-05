@@ -235,7 +235,7 @@ io.on('connection', async function (socket) {
   })
 })
 
-const PORT = 8081
-server.listen(8081, function () {
+const PORT = 8000
+server.listen(8000, function () {
   console.log(`Listening on ${PORT}`)
 })
