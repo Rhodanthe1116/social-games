@@ -40,7 +40,7 @@ export function addChat(main) {
       msg: message.value,
     }
     main.socket.emit('chat message', msg)
-    message.value = '💩'
+    message.value = ''
 
     //
 

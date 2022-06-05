@@ -195,20 +195,20 @@ io.on('connection', async function (socket) {
     socket.to(roomId).emit('somePlayerNameSet', players[socket.id])
   })
 
-  // socket.on('chat message', (msg) => {
-  //   msg.from = players[socket.id].name
-  //   msg.timestamp = new Date().toISOString()
-  //   console.log(msg)
-  //   io.emit('chat message', msg)
+  socket.on('chat message', (msg) => {
+    msg.from = players[socket.id].name
+    msg.timestamp = new Date().toISOString()
+    console.log(msg)
+    io.to(roomId).emit('chat message', msg)
 
-  //   const newMsg = new Message({ ...msg })
-  //   newMsg.save((err, msg) => {
-  //     if (err) {
-  //       console.log(err)
-  //     }
-  //     console.log('a msg saved: ', msg)
-  //   })
-  // })
+    // const newMsg = new Message({ ...msg })
+    // newMsg.save((err, msg) => {
+    //   if (err) {
+    //     console.log(err)
+    //   }
+    //   console.log('a msg saved: ', msg)
+    // })
+  })
 
   socket.on('starCollected', function () {
     if (players[socket.id].team === 'red') {

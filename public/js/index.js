@@ -16,6 +16,7 @@ const myNameEle = document.getElementById('player-name')
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'phaser-example',
+  backgroundColor: '#050122',
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -24,7 +25,7 @@ const game = new Phaser.Game({
   physics: {
     default: 'arcade',
     arcade: {
-      debug: true,
+      // debug: true,
       gravity: { y: 0 },
     },
   },

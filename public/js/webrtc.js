@@ -5,12 +5,17 @@ const myNameEle = document.getElementById('player-name')
 const ROOM_ID = window.location.pathname.substring(1)
 
 const videoGrid = document.getElementById('video-grid')
-function createVideoElement(id = '', muted = false) {
+function createVideoElement(id = '', muted = true) {
   const videoContainer = document.createElement('div')
   videoContainer.setAttribute('id', id)
+  videoContainer.setAttribute(
+    'style',
+    'background: black; color: white; display: flex; flex-direction: column;'
+  )
   const video = document.createElement('video')
   video.muted = muted
   const p = document.createElement('p')
+  p.setAttribute('style', 'text-align: center; margin-bottom: 3px')
   videoContainer.append(video)
   videoContainer.append(p)
   videoGrid.append(videoContainer)

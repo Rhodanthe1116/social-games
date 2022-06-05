@@ -1,25 +1,32 @@
+import { pushMessage } from './chat.js'
 export function preload() {
   this.load.image('ship', 'assets/spaceShips_001.png')
   this.load.image('otherPlayer', 'assets/enemyBlack5.png')
   this.load.image('star', 'assets/star_gold.png')
 }
+const TEAM_ONE_COLOR = '#3185FC'
+const TEAM_TWO_COLOR = '#E84855'
 
-export function addPlayer(main, playerInfo, myNameEle) {
-  var shipImg = main.add.image(0, 0, 'ship').setDisplaySize(53, 40)
-  var textColor = playerInfo.team === 'blue' ? '#9999ff' : '#ff9999'
-  console.log(textColor)
-  var playerName = main.add.text(0, 0, playerInfo.name, {
-    font: '24px Arial',
+function createPlayer(main, playerInfo, type = 'otherPlayer') {
+  const shipImg = main.add.image(0, 0, type).setDisplaySize(53, 40)
+  const textColor = playerInfo.team === 'blue' ? TEAM_ONE_COLOR : TEAM_TWO_COLOR
+  const playerName = main.add.text(0, 40, playerInfo.name, {
+    font: '20px Arial',
     color: textColor,
   })
+  playerName.setOrigin(0.5, 0.5)
 
-  var container = main.add.container(playerInfo.x, playerInfo.y)
+  const container = main.add.container(playerInfo.x, playerInfo.y)
   container.add(shipImg)
   container.add(playerName)
   container.setSize(64, 64)
   main.physics.world.enable(container)
 
-  main.ship = container
+  return container
+}
+
+export function addPlayer(main, playerInfo, myNameEle) {
+  main.ship = createPlayer(main, playerInfo, 'ship')
 
   main.ship.body.setDrag(100)
   main.ship.body.setAngularDrag(100)
@@ -29,19 +36,7 @@ export function addPlayer(main, playerInfo, myNameEle) {
 }
 
 export function addOtherPlayers(main, playerInfo) {
-  const shipImg = main.add.image(0, 0, 'otherPlayer').setDisplaySize(53, 40)
-  const textColor = playerInfo.team === 'blue' ? '#9999ff' : '#ff9999'
-  const playerName = main.add.text(0, 0, playerInfo.name, {
-    color: textColor,
-  })
-
-  var container = main.add.container(playerInfo.x, playerInfo.y)
-  container.add(shipImg)
-  container.add(playerName)
-  container.setSize(64, 64)
-  main.physics.world.enable(container)
-
-  const otherPlayer = container
+  const otherPlayer = createPlayer(main, playerInfo, 'otherPlayer')
 
   otherPlayer.playerId = playerInfo.playerId
   main.otherPlayers.add(otherPlayer)
@@ -83,20 +78,23 @@ export function create(main) {
 
   main.blueScoreText = main.add.text(16, 16, '', {
     fontSize: '32px',
-    fill: '#9999FF',
+    fill: TEAM_ONE_COLOR,
+    fontFamily: 'Arial',
   })
   main.winnerText = main.add.text(256, 16, '', {
     fontSize: '32px',
     fill: '#ffffff',
+    fontFamily: 'Arial',
   })
   main.redScoreText = main.add.text(584, 16, '', {
     fontSize: '32px',
-    fill: '#FF9999',
+    fill: TEAM_TWO_COLOR,
+    fontFamily: 'Arial',
   })
 
   main.socket.on('scoreUpdate', function (scores) {
-    main.blueScoreText.setText('Blue: ' + scores.blue)
-    main.redScoreText.setText('Red: ' + scores.red)
+    main.blueScoreText.setText('Team 1: ' + scores.blue)
+    main.redScoreText.setText('Team 2: ' + scores.red)
   })
 
   main.socket.on('winner', function (winner) {
@@ -106,7 +104,7 @@ export function create(main) {
       from: 'System',
       timestamp: new Date().toISOString().split('T')[0],
     }
-    // pushMessage(msg)
+    pushMessage(msg)
   })
 
   main.socket.on('starLocation', function (starLocation) {
