@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express from 'express'
 import http from 'http'
 import { nanoid } from 'nanoid'
@@ -5,9 +6,10 @@ import path from 'path'
 import socket, { Server, Socket } from 'socket.io'
 import { v4 as uuid } from 'uuid'
 
+import * as DemoGame from './demo-game'
 import Message from './models/message'
 import { logUserInfo } from './socket/utils'
-import { choose } from './utils'
+import * as TankGame from './tank-game'
 
 interface ServerToClientEvents {
   noArg: () => void
@@ -29,12 +31,13 @@ interface SocketData {
 }
 
 const app = express()
+app.use(cors())
 const server = http.createServer(app)
-const io = new Server(server)
-
-// game config
-const goal = 100
-const starScore = 23
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+})
 
 /*
     {
@@ -46,29 +49,18 @@ const starScore = 23
         name: `Player-${socket.id}`
     };
 */
-interface Player {
+export interface Player<T> {
   id: string
-  rotation: number
-  x: number
-  y: number
-  playerId: string
-  team: 'red' | 'blue'
+  playerId?: string
   name: string
+  gameInfo: Record<string, T>
 }
 interface Room {
   id: string
-  players: Record<string, Player>
+  players: Record<string, Player<any>>
+  gameId: string
 }
 const rooms: Record<string, Room> = {}
-const star = {
-  x: Math.floor(Math.random() * 700) + 50,
-  y: Math.floor(Math.random() * 500) + 50,
-}
-const scores = {
-  blue: 0,
-  red: 0,
-}
-let winner = ''
 
 const PROJECT_ROOT = __dirname + '/..'
 app.use(express.static(PROJECT_ROOT + '/public'))
@@ -95,19 +87,26 @@ const webRTC = {
 
 io.on('connection', async function (socket) {
   logUserInfo(socket)
-  const { roomId } = socket.handshake.query
-  if (typeof roomId !== 'string') {
+  const { roomId, newGameId } = socket.handshake.query
+  if (typeof roomId !== 'string' || roomId === '') {
     console.log('no roomId')
     return
   }
-  socket.join(roomId)
+  console.log('roomId:', roomId)
 
   if (!rooms[roomId]) {
+    let gameId = newGameId
+    if (typeof gameId !== 'string') {
+      console.log('no newGameId', gameId)
+      gameId = 'demo'
+    }
     rooms[roomId] = {
       id: roomId,
       players: {},
+      gameId: gameId,
     }
   }
+  socket.join(roomId)
 
   const players = rooms[roomId].players
 
@@ -119,122 +118,14 @@ io.on('connection', async function (socket) {
     })
   })
 
-  // create a new player and add it to our players object
-  players[socket.id] = {
-    id: socket.id,
-    rotation: 0,
-    x: Math.floor(Math.random() * 700) + 50,
-    y: Math.floor(Math.random() * 500) + 50,
-    playerId: socket.id,
-    team: Math.floor(Math.random() * 2) == 0 ? 'red' : 'blue',
-    name: choose([
-      'Alice',
-      'Bob',
-      'Charlie',
-      'Dave',
-      'Eve',
-      'Frank',
-      'Grace',
-      'Holly',
-      'Ivy',
-      'Jack',
-      'Karen',
-      'Lily',
-      'Molly',
-      'Nancy',
-      'Oscar',
-      'Peggy',
-      'Queen',
-      'Ralph',
-      'Sally',
-      'Tina',
-      'Uma',
-      'Vicky',
-      'Wendy',
-      'Xena',
-      'Yolanda',
-      'Zoe',
-    ]),
+  if (rooms[roomId].gameId === 'demo') {
+    DemoGame.onConnection(io, socket, roomId, players)
+  } else {
+    TankGame.onConnection(io, socket, roomId, players, socket.handshake.query)
   }
-
-  // send the players object to the new player
-  socket.emit('connected', players)
-  // send the star object to the new player
-  socket.emit('starLocation', star)
-  // send the current scores
-  socket.emit('scoreUpdate', scores)
-
-  // try {
-  //   const msgs = await Message.find()
-  //   socket.emit('messages', msgs)
-  // } catch (err) {
-  //   console.log(err)
-  // }
-
-  // update all other players of the new player
-  socket.to(roomId).emit('newPlayer', players[socket.id])
-
-  socket.on('disconnect', function () {
-    console.log('user disconnected')
-
-    delete players[socket.id]
-    socket.to(roomId).emit('playerDisconnect', socket.id)
-  })
-
-  // when a player moves, update the player data
-  socket.on('playerMovement', function (movementData) {
-    players[socket.id].x = movementData.x
-    players[socket.id].y = movementData.y
-    players[socket.id].rotation = movementData.rotation
-    // emit a message to all players about the player that moved
-    socket.to(roomId).emit('playerMoved', players[socket.id])
-  })
-  socket.on('nameSet', function (name) {
-    players[socket.id].name = name
-    // emit a message to all players about the player that changed name
-    socket.to(roomId).emit('somePlayerNameSet', players[socket.id])
-  })
-
-  socket.on('chat message', (msg) => {
-    msg.from = players[socket.id].name
-    msg.timestamp = new Date().toISOString()
-    io.to(roomId).emit('chat message', msg)
-
-    // const newMsg = new Message({ ...msg })
-    // newMsg.save((err, msg) => {
-    //   if (err) {
-    //     console.log(err)
-    //   }
-    //   console.log('a msg saved: ', msg)
-    // })
-  })
-
-  socket.on('starCollected', function () {
-    if (players[socket.id].team === 'red') {
-      scores.red += starScore
-    } else {
-      scores.blue += starScore
-    }
-
-    if (scores.red >= goal) {
-      winner = 'red'
-      scores.red = 0
-      scores.blue = 0
-      io.emit('winner', winner)
-    } else if (scores.blue >= goal) {
-      winner = 'blue'
-      scores.red = 0
-      scores.blue = 0
-      io.emit('winner', winner)
-    }
-    star.x = Math.floor(Math.random() * 700) + 50
-    star.y = Math.floor(Math.random() * 500) + 50
-    io.emit('starLocation', star)
-    io.emit('scoreUpdate', scores)
-  })
 })
 
-const PORT = process.env.PORT || 8000
+const PORT = process.env.PORT || 8081
 
 server.listen(PORT, function () {
   console.log(`Listening on ${PORT}`)
